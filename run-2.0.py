@@ -1,7 +1,11 @@
 import random
+from colorama import Fore, Style, init
 
-def build_pc(budget, gaming=False, video_editing=False, storage_space=0):
-    components = {
+# Inicializar o colorama
+init(autoreset=True)
+
+def montar_pc(orçamento, gaming=False, edicao_video=False, espaco_armazenamento=0):
+    componentes = {
         "CPU": {
             "Intel Core i3-10100": 130,
             "Intel Core i5-10400": 200,
@@ -9,7 +13,7 @@ def build_pc(budget, gaming=False, video_editing=False, storage_space=0):
             "Intel Core i7-10700K": 350,
         },
         "GPU": {
-            "Integrated Graphics": 0,
+            "Gráficos Integrados": 0,
             "NVIDIA GeForce GTX 1650": 150,
             "NVIDIA GeForce GTX 1660": 200,
             "NVIDIA GeForce RTX 3060": 400,
@@ -19,59 +23,85 @@ def build_pc(budget, gaming=False, video_editing=False, storage_space=0):
             "16GB DDR4": 100,
             "32GB DDR4": 200,
         },
-        "Storage": {
+        "Armazenamento": {
             "120GB SSD": 40,
             "240GB SSD": 60,
             "500GB SSD": 100,
             "1TB SSD": 200,
             "2TB SSD": 400,
         },
-        "Motherboard": {
+        "Placa-Mãe": {
             "B460M-DS3H": 80,
             "Z490 AORUS MASTER": 300,
         },
-        "PSU": {
+        "Fonte": {
             "EVGA 500W": 40,
             "EVGA 600W": 50,
             "EVGA 850W": 100,
         },
-        "Case": {
+        "Gabinete": {
             "Corsair Carbide Series 100R": 50,
             "Phanteks Eclipse P400A": 80,
             "Lian Li PC-O11 Dynamic": 150,
         },
     }
     
-    recommendations = {
+    recomendacoes = {
         "CPU": ["Intel Core i5-10400"],
-        "GPU": ["Integrated Graphics"],
+        "GPU": ["Gráficos Integrados"],
         "RAM": ["16GB DDR4"],
-        "Storage": ["1TB SSD"],
-        "Motherboard": ["B460M-DS3H"],
-        "PSU": ["EVGA 600W"],
-        "Case": ["Phanteks Eclipse P400A"],
+        "Armazenamento": ["1TB SSD"],
+        "Placa-Mãe": ["B460M-DS3H"],
+        "Fonte": ["EVGA 600W"],
+        "Gabinete": ["Phanteks Eclipse P400A"],
     }
     
     if gaming:
-        recommendations["GPU"] = ["NVIDIA GeForce GTX 1660"]
+        recomendacoes["GPU"] = ["NVIDIA GeForce GTX 1660"]
     
-    if video_editing:
-        recommendations["CPU"] = ["Intel Core i7-10700K"]
-        recommendations["GPU"] = ["NVIDIA GeForce RTX 3060"]
-        recommendations["RAM"] = ["32GB DDR4"]
+    if edicao_video:
+        recomendacoes["CPU"] = ["Intel Core i7-10700K"]
+        recomendacoes["GPU"] = ["NVIDIA GeForce RTX 3060"]
+        recomendacoes["RAM"] = ["32GB DDR4"]
     
-    if storage_space:
-        recommended_storage = []
-        for item, price in components["Storage"].items():
-            if price <= budget and storage_space <= int(item.split()[0]):
-                recommended_storage.append(item)
-        if recommended_storage:
-            recommendations["Storage"] = recommended_storage
+    if espaco_armazenamento:
+        armazenamento_recomendado = []
+        for item, preco in componentes["Armazenamento"].items():
+            if preco <= orçamento and espaco_armazenamento <= int(item.split()[0].replace("GB", "").replace("TB", "000")):
+                armazenamento_recomendado.append(item)
+        if armazenamento_recomendado:
+            recomendacoes["Armazenamento"] = armazenamento_recomendado
     
-    pc = {
-        "CPU": None,
-        "GPU": None,
-        "RAM": None,
-        "Storage": None,
-        "Motherboard": None
-    }
+    pc = {}
+    total = 0
+
+    for categoria, opcoes in recomendacoes.items():
+        escolhido = None
+        for opcao in opcoes:
+            if componentes[categoria][opcao] <= (orçamento - total):
+                escolhido = opcao
+                break
+        if escolhido is None:
+            alternativas = [comp for comp, preco in componentes[categoria].items() if preco <= (orçamento - total)]
+            if alternativas:
+                escolhido = random.choice(alternativas)
+        
+        if escolhido:
+            pc[categoria] = escolhido
+            total += componentes[categoria][escolhido]
+        else:
+            pc[categoria] = "Não foi possível incluir"
+    
+    pc["Custo Total"] = total
+    
+    # Impressão colorida
+    print(Fore.CYAN + "\nConfiguração Final do PC:")
+    for componente, escolha in pc.items():
+        if componente == "Custo Total":
+            print(Fore.GREEN + f"{componente}: ${escolha}")
+        else:
+            print(Fore.YELLOW + f"{componente}: " + Fore.WHITE + f"{escolha}")
+    return pc
+
+# Exemplo de uso
+resultado = montar_pc(1000, gaming=True, edicao_video=False, espaco_armazenamento=500)
