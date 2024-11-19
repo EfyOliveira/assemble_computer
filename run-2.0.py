@@ -74,3 +74,4 @@ def build_pc(budget, gaming=False, video_editing=False, storage_space=0):
         "RAM": None,
         "Storage": None,
         "Motherboard": None
+    }
